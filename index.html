@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabTrack Pro | MCA Department Lab & Equipment Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom subtle scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .fade-in {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col lg:flex-row overflow-x-hidden">
+
+    <!-- ================= AUTHENTICATION OVERLAY (LOGIN / SIGNUP) ================= -->
+    <div id="authOverlay" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-800/40 my-auto fade-in">
+            <!-- Left Branding Panel -->
+            <div class="bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 p-8 sm:p-10 text-white flex flex-col justify-between">
+                <div>
+                    <div class="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-sm border border-white/15 px-3.5 py-1.5 rounded-full text-xs font-semibold text-indigo-100 mb-6">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        Graphic Era (Deemed to be University), Dehradun
+                    </div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center text-white border border-white/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-extrabold tracking-tight">LabTrack Pro</h1>
+                            <p class="text-xs text-indigo-200">Dept. of Computer Applications • MCA Sem III</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-indigo-100/90 leading-relaxed mt-4">
+                        Centralized university hardware inventory, student kit issue-return tracking, automated overdue fine calculation, and lab workstation fault management.
+                    </p>
+                </div>
+
+                <!-- Quick 1-Click Viva Demo Logins -->
+                <div class="mt-8 pt-6 border-t border-white/15">
+                    <p class="text-[11px] uppercase tracking-wider font-bold text-indigo-200 mb-3">Quick Viva Demo Access (1-Click)</p>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" onclick="quickDemoLogin('student')" class="bg-white/10 hover:bg-white/20 border border-white/15 rounded-xl p-3 text-left transition-all">
+                            <p class="text-xs font-bold text-white">Student Demo</p>
+                            <p class="text-[11px] text-indigo-200 mt-0.5">Roll: 2401034</p>
+                        </button>
+                        <button type="button" onclick="quickDemoLogin('admin')" class="bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 rounded-xl p-3 text-left transition-all">
+                            <p class="text-xs font-bold text-emerald-200">Lab Admin Demo</p>
+                            <p class="text-[11px] text-emerald-100/80 mt-0.5">ID: FAC-109</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Auth Form Panel -->
+            <div class="p-8 sm:p-10 bg-white flex flex-col justify-center">
+                <!-- Auth Mode Tabs -->
+                <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-xl mb-6">
+                    <button id="tabBtnLogin" type="button" onclick="toggleAuthTab('login')" class="py-2 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm transition-all">
+                        Sign In
+                    </button>
+                    <button id="tabBtnSignup" type="button" onclick="toggleAuthTab('signup')" class="py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">
+                        Student Register
+                    </button>
+                </div>
+
+                <!-- Sign In Form -->
+                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Welcome Back</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Sign in with your University Roll Number or Faculty ID.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Roll Number / Employee ID</label>
+                        <input id="loginId" type="text" required placeholder="e.g., 2401034 or FAC-109" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                        <input id="loginPassword" type="password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <p id="loginError" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2"></p>
+                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition-all active:scale-95">
+                        Sign In to Portal
+                    </button>
+                    <p class="text-[11px] text-slate-400 text-center pt-1">
+                        Demo Passwords: <span class="font-mono text-slate-600">student123</span> or <span class="font-mono text-slate-600">admin123</span>
+                    </p>
+                </form>
+
+                <!-- Student Registration Form -->
+                <form id="signupForm" onsubmit="handleRegister(event)" class="hidden space-y-3.5">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Create Student Account</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Register with your MCA Roll Number to request lab hardware.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
+                        <input id="regName" type="text" required placeholder="e.g., Kabir Bisht" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">University Roll No</label>
+                            <input id="regRoll" type="text" required placeholder="e.g., 2401052" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Course & Semester</label>
+                            <input id="regCourse" type="text" required value="MCA Sem III" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Create Password</label>
+                        <input id="regPassword" type="password" minlength="4" required placeholder="Min. 4 characters" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <p id="signupError" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2"></p>
+                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold shadow-sm transition-all active:scale-95">
+                        Register &amp; Enter Portal
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity"></div>
+
+    <!-- Left Navigation Sidebar -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-72 bg-slate-900 text-slate-200 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shrink-0">
+        <!-- Brand Logo -->
+        <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white leading-tight tracking-tight">LabTrack Pro</h1>
+                    <p class="text-xs text-slate-400">Dept. of Computer Applications</p>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Active User Profile Card -->
+        <div class="px-4 pt-5 pb-2">
+            <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3.5">
+                <div class="flex items-center gap-3">
+                    <div id="userAvatar" class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-300 font-bold flex items-center justify-center text-sm border border-indigo-500/30">
+                        AS
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p id="userName" class="text-sm font-semibold text-white truncate">Aarav Sharma</p>
+                        <p id="userMeta" class="text-xs text-slate-400 truncate">MCA Sem III • 2401034</p>
+                    </div>
+                </div>
+                <!-- Role Switcher for Live Mini-Project Demo -->
+                <div class="mt-3 pt-3 border-t border-slate-700/60">
+                    <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1.5">Demo Role Switcher</p>
+                    <div class="grid grid-cols-2 gap-1.5 bg-slate-900/80 p-1 rounded-xl">
+                        <button id="btnRoleStudent" onclick="switchRole('student')" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition-all bg-indigo-600 text-white shadow">
+                            Student
+                        </button>
+                        <button id="btnRoleAdmin" onclick="switchRole('admin')" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white">
+                            Lab Admin
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
+            <button onclick="navigate('dashboard')" data-nav="dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors bg-indigo-600 text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                <span>Dashboard</span>
+            </button>
+
+            <button onclick="navigate('inventory')" data-nav="inventory" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <span>Lab Inventory</span>
+            </button>
+
+            <button onclick="navigate('requests')" data-nav="requests" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    <span>Issue & Return Logs</span>
+                </div>
+                <span id="pendingBadge" class="hidden px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500 text-slate-900">0</span>
+            </button>
+
+            <button onclick="navigate('maintenance')" data-nav="maintenance" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span>Faulty PC Reports</span>
+                </div>
+                <span id="faultBadge" class="hidden px-2 py-0.5 text-xs font-bold rounded-full bg-rose-500 text-white">0</span>
+            </button>
+        </nav>
+
+        <!-- Footer Info -->
+        <div class="p-4 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between gap-2">
+            <button onclick="logoutUser()" class="inline-flex items-center gap-1.5 text-slate-300 hover:text-white font-semibold transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                Logout
+            </button>
+            <button onclick="resetDemoData()" class="text-slate-400 hover:text-rose-400 underline transition-colors" title="Reset sample data">Reset Data</button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Top Header Bar -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <div>
+                    <h2 id="pageTitle" class="text-xl font-bold text-slate-900">Dashboard Overview</h2>
+                    <p id="pageSubtitle" class="text-xs sm:text-sm text-slate-500">Real-time hardware stock, issue approvals, and lab system health.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <span id="rolePill" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                    Student Portal
+                </span>
+                <button id="headerPrimaryBtn" onclick="openPrimaryModal()" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition-all active:scale-95">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span id="headerPrimaryBtnText">Report Faulty PC</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Views Container -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+
+            <!-- ================= VIEW 1: DASHBOARD ================= -->
+            <section id="view-dashboard" class="view-section space-y-6 fade-in">
+                <!-- KPI Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Hardware Units</p>
+                            <h3 id="statTotalUnits" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                            <p id="statAvailableUnits" class="text-xs text-emerald-600 font-medium mt-1">0 currently available</p>
+                        </div>
+                        <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Issued Items</p>
+                            <h3 id="statActiveIssued" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Currently with students</p>
+                        </div>
+                        <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending Approvals</p>
+                            <h3 id="statPendingReq" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                            <p class="text-xs text-amber-600 font-medium mt-1">Awaiting lab in-charge</p>
+                        </div>
+                        <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Open Fault Tickets</p>
+                            <h3 id="statOpenFaults" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                            <p class="text-xs text-rose-600 font-medium mt-1">Lab PCs / peripherals</p>
+                        </div>
+                        <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two-Column Dashboard Body -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Issue Requests -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-slate-900">Recent Equipment Transactions</h3>
+                                <p class="text-xs text-slate-500">Latest issue requests and return updates</p>
+                            </div>
+                            <button onclick="navigate('requests')" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">View All &rarr;</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                        <th class="py-3 px-5 font-semibold">Equipment</th>
+                                        <th class="py-3 px-5 font-semibold">Student</th>
+                                        <th class="py-3 px-5 font-semibold">Due Date</th>
+                                        <th class="py-3 px-5 font-semibold">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardRecentBody" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Category Stock Distribution -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-slate-900">Stock Availability by Category</h3>
+                            <p class="text-xs text-slate-500 mb-5">Live utilization across department labs</p>
+                            <div id="categoryBars" class="space-y-4">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-100 bg-slate-50 -mx-5 -mb-5 p-5 rounded-b-2xl">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-500 font-medium">Overdue Fine Policy:</span>
+                                <span class="font-bold text-slate-800">₹20 / day after due date</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 2: LAB INVENTORY ================= -->
+            <section id="view-inventory" class="view-section hidden space-y-6 fade-in">
+                <!-- Search & Filter Bar -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                    <div class="relative flex-1">
+                        <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input id="inventorySearch" oninput="renderInventory()" type="text" placeholder="Search by equipment name, model, or lab room..." class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <select id="categoryFilter" onchange="renderInventory()" class="px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                            <option value="All">All Categories</option>
+                            <option value="IoT & Microcontrollers">IoT & Microcontrollers</option>
+                            <option value="Networking">Networking</option>
+                            <option value="Computing & VR">Computing & VR</option>
+                            <option value="Sensors & Tools">Sensors & Tools</option>
+                        </select>
+                        <button id="btnAddEquipment" onclick="openAddEquipmentModal()" class="hidden items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add Equipment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Inventory Cards Grid -->
+                <div id="inventoryGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- ================= VIEW 3: ISSUE & RETURN LOGS ================= -->
+            <section id="view-requests" class="view-section hidden space-y-5 fade-in">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="setRequestFilter('All')" data-req-filter="All" class="req-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white">All Logs</button>
+                        <button onclick="setRequestFilter('Pending')" data-req-filter="Pending" class="req-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">Pending</button>
+                        <button onclick="setRequestFilter('Issued')" data-req-filter="Issued" class="req-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">Issued / Overdue</button>
+                        <button onclick="setRequestFilter('Returned')" data-req-filter="Returned" class="req-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">Returned</button>
+                    </div>
+                    <p id="requestScopeHint" class="text-xs text-slate-500 font-medium"></p>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                                    <th class="py-3.5 px-5 font-semibold">Req ID</th>
+                                    <th class="py-3.5 px-5 font-semibold">Equipment & Qty</th>
+                                    <th class="py-3.5 px-5 font-semibold">Student / Roll No</th>
+                                    <th class="py-3.5 px-5 font-semibold">Issue & Due Date</th>
+                                    <th class="py-3.5 px-5 font-semibold">Status & Fine</th>
+                                    <th class="py-3.5 px-5 font-semibold text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestsTableBody" class="divide-y divide-slate-100 text-sm">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 4: FAULTY PC / MAINTENANCE ================= -->
+            <section id="view-maintenance" class="view-section hidden space-y-5 fade-in">
+                <div class="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl p-6 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+                    <div>
+                        <h3 class="text-lg font-bold">Lab System & Hardware Maintenance Log</h3>
+                        <p class="text-sm text-slate-300 mt-1">Report non-working lab computers, network ports, monitors, or software issues directly to the lab technician.</p>
+                    </div>
+                    <button onclick="openFaultModal()" class="shrink-0 bg-white text-slate-900 hover:bg-indigo-50 font-semibold text-sm px-5 py-2.5 rounded-xl shadow transition-all">
+                        + Report Faulty PC
+                    </button>
+                </div>
+
+                <div id="faultTicketsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ================= MODAL 1: REQUEST EQUIPMENT (STUDENT) ================= -->
+    <div id="requestModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl fade-in">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900">Request Lab Equipment</h3>
+                <button onclick="closeModal('requestModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">&times;</button>
+            </div>
+            <form id="requestForm" onsubmit="submitIssueRequest(event)" class="mt-4 space-y-4">
+                <input type="hidden" id="reqEquipId">
+                <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5">
+                    <p id="reqEquipTitle" class="font-bold text-indigo-950 text-sm"></p>
+                    <p id="reqEquipAvail" class="text-xs text-indigo-700 mt-0.5"></p>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Quantity</label>
+                        <input id="reqQty" type="number" min="1" value="1" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Return Due Date</label>
+                        <input id="reqDueDate" type="date" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Academic Purpose / Project Name</label>
+                    <textarea id="reqPurpose" rows="2" required placeholder="e.g., IoT Smart Attendance Mini Project testing in Lab 2" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('requestModal')" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL 2: ADD EQUIPMENT (ADMIN) ================= -->
+    <div id="addEquipModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl fade-in">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900">Add New Lab Equipment</h3>
+                <button onclick="closeModal('addEquipModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">&times;</button>
+            </div>
+            <form id="addEquipForm" onsubmit="submitNewEquipment(event)" class="mt-4 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Equipment Name & Model</label>
+                    <input id="newEquipName" type="text" required placeholder="e.g., ESP32 Wi-Fi DevKit v1" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Category</label>
+                        <select id="newEquipCat" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                            <option value="IoT & Microcontrollers">IoT & Microcontrollers</option>
+                            <option value="Networking">Networking</option>
+                            <option value="Computing & VR">Computing & VR</option>
+                            <option value="Sensors & Tools">Sensors & Tools</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lab Room</label>
+                        <input id="newEquipLab" type="text" required placeholder="e.g., MCA Lab 2" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Total Stock Quantity</label>
+                    <input id="newEquipQty" type="number" min="1" value="5" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('addEquipModal')" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow">Save Asset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL 3: REPORT FAULTY PC ================= -->
+    <div id="faultModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl fade-in">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900">Report Faulty Lab System</h3>
+                <button onclick="closeModal('faultModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">&times;</button>
+            </div>
+            <form id="faultForm" onsubmit="submitFaultReport(event)" class="mt-4 space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lab Name</label>
+                        <select id="faultLab" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                            <option value="MCA Lab 1 (Java/Web)">MCA Lab 1 (Java/Web)</option>
+                            <option value="MCA Lab 2 (IoT/Cloud)">MCA Lab 2 (IoT/Cloud)</option>
+                            <option value="MCA Lab 3 (Networking)">MCA Lab 3 (Networking)</option>
+                            <option value="Project Research Lab">Project Research Lab</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">PC / System ID</label>
+                        <input id="faultSysId" type="text" required placeholder="e.g., PC-14" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Priority Level</label>
+                    <select id="faultPriority" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                        <option value="High">High (System Unusable)</option>
+                        <option value="Medium" selected>Medium (Peripheral / Software Issue)</option>
+                        <option value="Low">Low (Minor Glitch)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Issue Description</label>
+                    <textarea id="faultDesc" rows="3" required placeholder="Describe the hardware or software fault..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('faultModal')" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow">Submit Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container (Replaces native alert) -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+    <script>
+        const STORAGE_KEY = 'labtrack_pro_mca_v2';
+        const SESSION_KEY = 'labtrack_pro_session_v2';
+
+        // Default seed data for first-time visitors (includes registered users for Login/Signup)
+        const DEFAULT_DATA = {
+            users: [
+                { rollNo: '2401034', name: 'Aarav Sharma', password: 'student123', role: 'student', course: 'MCA Sem III' },
+                { rollNo: '2401048', name: 'Priya Rawat', password: 'student123', role: 'student', course: 'MCA Sem III' },
+                { rollNo: 'FAC-109', name: 'Prof. R. Verma', password: 'admin123', role: 'admin', course: 'Lab In-Charge' }
+            ],
+            equipment: [
+                { id: 'EQ-101', name: 'Raspberry Pi 5 (8GB) Starter Kit', category: 'IoT & Microcontrollers', lab: 'MCA Lab 2', total: 10, available: 7, specs: 'Quad-core Cortex-A76, Power Supply, Case' },
+                { id: 'EQ-102', name: 'Cisco Catalyst 2960 Switch', category: 'Networking', lab: 'MCA Lab 3', total: 4, available: 3, specs: '24-Port Managed Ethernet Switch + Console Cable' },
+                { id: 'EQ-103', name: 'Arduino Uno R3 + Breadboard Kit', category: 'IoT & Microcontrollers', lab: 'MCA Lab 2', total: 15, available: 12, specs: 'ATmega328P, USB Cable, Jumper Wires' },
+                { id: 'EQ-104', name: 'Meta Quest 3 VR Dev Headset', category: 'Computing & VR', lab: 'Project Lab', total: 3, available: 2, specs: '128GB Mixed Reality + Touch Plus Controllers' },
+                { id: 'EQ-105', name: 'LAN Crimping & Cable Tester Kit', category: 'Networking', lab: 'MCA Lab 3', total: 8, available: 6, specs: 'RJ45 Crimper, Punch Down Tool, Continuity Tester' },
+                { id: 'EQ-106', name: 'Ultrasonic & DHT22 Sensor Pack', category: 'Sensors & Tools', lab: 'MCA Lab 2', total: 20, available: 18, specs: 'HC-SR04, DHT22, PIR Motion, Relay Module' }
+            ],
+            requests: [
+                { id: 'REQ-501', equipId: 'EQ-101', equipName: 'Raspberry Pi 5 (8GB) Starter Kit', studentName: 'Aarav Sharma', rollNo: '2401034', qty: 1, purpose: 'Edge AI Face Recognition Prototype', issueDate: '2026-11-12', dueDate: '2026-11-19', status: 'Issued' },
+                { id: 'REQ-502', equipId: 'EQ-102', equipName: 'Cisco Catalyst 2960 Switch', studentName: 'Priya Rawat', rollNo: '2401048', qty: 1, purpose: 'VLAN & Subnetting Lab Assignment', issueDate: '2026-11-21', dueDate: '2026-11-28', status: 'Issued' },
+                { id: 'REQ-503', equipId: 'EQ-104', equipName: 'Meta Quest 3 VR Dev Headset', studentName: 'Aarav Sharma', rollNo: '2401034', qty: 1, purpose: 'WebXR Campus Tour Mini Project', issueDate: '2026-11-23', dueDate: '2026-11-30', status: 'Pending' },
+                { id: 'REQ-504', equipId: 'EQ-103', equipName: 'Arduino Uno R3 + Breadboard Kit', studentName: 'Rohan Negi', rollNo: '2401019', qty: 2, purpose: 'Smart Parking Sensor Demo', issueDate: '2026-11-10', dueDate: '2026-11-15', status: 'Returned' }
+            ],
+            faults: [
+                { id: 'FLT-201', lab: 'MCA Lab 1 (Java/Web)', systemId: 'PC-14', priority: 'High', description: 'XAMPP Apache service fails to bind port 80 and monitor flickers intermittently.', reportedBy: 'Aarav Sharma (2401034)', date: '2026-11-22', status: 'Open' },
+                { id: 'FLT-202', lab: 'MCA Lab 3 (Networking)', systemId: 'PC-07', priority: 'Medium', description: 'Ethernet RJ45 wall jack loose; intermittent packet drops during Cisco Packet Tracer labs.', reportedBy: 'Priya Rawat (2401048)', date: '2026-11-20', status: 'In Progress' }
+            ]
+        };
+
+        // Application State
+        let appState = loadData();
+        let currentUser = loadSession();
+        let currentRole = currentUser ? currentUser.role : 'student'; // 'student' | 'admin'
+        let currentView = 'dashboard';
+        let currentReqFilter = 'All';
+
+        function getInitials(name) {
+            return String(name || 'US')
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(part => part[0].toUpperCase())
+                .join('');
+        }
+
+        function loadSession() {
+            try {
+                const raw = localStorage.getItem(SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (err) {
+                return null;
+            }
+        }
+
+        function saveSession(user) {
+            currentUser = user;
+            try {
+                if (user) {
+                    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+                } else {
+                    localStorage.removeItem(SESSION_KEY);
+                }
+            } catch (err) {
+                console.warn('Session storage unavailable:', err);
+            }
+        }
+
+        /* ================= AUTHENTICATION (LOGIN / SIGNUP / LOGOUT) ================= */
+
+        function toggleAuthTab(tab) {
+            const isLogin = tab === 'login';
+            document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
+            document.getElementById('signupForm').classList.toggle('hidden', isLogin);
+            document.getElementById('loginError').classList.add('hidden');
+            document.getElementById('signupError').classList.add('hidden');
+
+            document.getElementById('tabBtnLogin').className = isLogin
+                ? 'py-2 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm transition-all'
+                : 'py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-800 transition-all';
+            document.getElementById('tabBtnSignup').className = !isLogin
+                ? 'py-2 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm transition-all'
+                : 'py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-800 transition-all';
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const idInput = document.getElementById('loginId').value.trim().toUpperCase();
+            const pwdInput = document.getElementById('loginPassword').value;
+            const errBox = document.getElementById('loginError');
+
+            const user = appState.users.find(
+                u => u.rollNo.toUpperCase() === idInput && u.password === pwdInput
+            );
+
+            if (!user) {
+                errBox.textContent = 'Invalid Roll Number / Faculty ID or Password.';
+                errBox.classList.remove('hidden');
+                return;
+            }
+
+            errBox.classList.add('hidden');
+            completeSignIn(user);
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const rollNo = document.getElementById('regRoll').value.trim().toUpperCase();
+            const course = document.getElementById('regCourse').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const errBox = document.getElementById('signupError');
+
+            const exists = appState.users.some(u => u.rollNo.toUpperCase() === rollNo);
+            if (exists) {
+                errBox.textContent = `Roll Number ${rollNo} is already registered. Please Sign In instead.`;
+                errBox.classList.remove('hidden');
+                return;
+            }
+
+            const newUser = { rollNo, name, password, role: 'student', course: course || 'MCA Sem III' };
+            appState.users.push(newUser);
+            saveData();
+            errBox.classList.add('hidden');
+            completeSignIn(newUser);
+            showToast(`Account created! Welcome, ${newUser.name}.`, 'success');
+        }
+
+        function quickDemoLogin(role) {
+            const demoUser = role === 'admin'
+                ? appState.users.find(u => u.role === 'admin')
+                : appState.users.find(u => u.rollNo === '2401034') || appState.users.find(u => u.role === 'student');
+            if (demoUser) {
+                completeSignIn(demoUser);
+            }
+        }
+
+        function completeSignIn(user) {
+            saveSession(user);
+            document.getElementById('authOverlay').classList.add('hidden');
+            applyUserToUI(user);
+            renderAll();
+            showToast(`Signed in as ${user.name} (${user.role === 'admin' ? 'Lab Admin' : 'Student'}).`, 'success');
+        }
+
+        function logoutUser() {
+            saveSession(null);
+            document.getElementById('loginForm').reset();
+            document.getElementById('signupForm').reset();
+            toggleAuthTab('login');
+            document.getElementById('authOverlay').classList.remove('hidden');
+            showToast('You have been logged out.', 'info');
+        }
+
+        function applyUserToUI(user) {
+            currentRole = user.role;
+            const isAdmin = currentRole === 'admin';
+
+            document.getElementById('userAvatar').textContent = getInitials(user.name);
+            document.getElementById('userName').textContent = user.name;
+            document.getElementById('userMeta').textContent = `${user.course} • ${user.rollNo}`;
+
+            document.getElementById('btnRoleStudent').className = !isAdmin
+                ? 'py-1.5 px-2 rounded-lg text-xs font-semibold transition-all bg-indigo-600 text-white shadow'
+                : 'py-1.5 px-2 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white';
+            document.getElementById('btnRoleAdmin').className = isAdmin
+                ? 'py-1.5 px-2 rounded-lg text-xs font-semibold transition-all bg-emerald-600 text-white shadow'
+                : 'py-1.5 px-2 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white';
+
+            const rolePill = document.getElementById('rolePill');
+            if (isAdmin) {
+                rolePill.className = 'hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
+                rolePill.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-600"></span> Lab Admin Portal';
+                document.getElementById('headerPrimaryBtnText').textContent = 'Add Equipment';
+                document.getElementById('btnAddEquipment').classList.remove('hidden');
+                document.getElementById('btnAddEquipment').classList.add('inline-flex');
+            } else {
+                rolePill.className = 'hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200';
+                rolePill.innerHTML = '<span class="w-2 h-2 rounded-full bg-indigo-600"></span> Student Portal';
+                document.getElementById('headerPrimaryBtnText').textContent = 'Report Faulty PC';
+                document.getElementById('btnAddEquipment').classList.add('hidden');
+                document.getElementById('btnAddEquipment').classList.remove('inline-flex');
+            }
+        }
+
+        /**
+         * Load persisted data from localStorage safely with try/catch fallback
+         */
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (err) {
+                console.warn('LocalStorage unavailable, using in-memory seed data.', err);
+            }
+            return JSON.parse(JSON.stringify(DEFAULT_DATA));
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } catch (err) {
+                console.warn('Failed to save to localStorage:', err);
+            }
+        }
+
+        function resetDemoData() {
+            appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
+            saveData();
+            if (currentUser) {
+                const refreshed = appState.users.find(u => u.rollNo === currentUser.rollNo) || appState.users[0];
+                saveSession(refreshed);
+                applyUserToUI(refreshed);
+            }
+            renderAll();
+            showToast('Sample MCA lab dataset restored.', 'info');
+        }
+
+        /**
+         * Role Switcher (Student vs Lab Admin for rapid Viva demonstration)
+         */
+        function switchRole(role) {
+            const targetUser = role === 'admin'
+                ? appState.users.find(u => u.role === 'admin')
+                : (currentUser && currentUser.role === 'student' ? currentUser : appState.users.find(u => u.role === 'student'));
+
+            if (!targetUser) return;
+            saveSession(targetUser);
+            applyUserToUI(targetUser);
+            renderAll();
+            showToast(`Switched to ${role === 'admin' ? 'Lab Admin' : 'Student'} mode (${targetUser.name}).`, 'info');
+        }
+
+        function openPrimaryModal() {
+            if (currentRole === 'admin') {
+                openAddEquipmentModal();
+            } else {
+                openFaultModal();
+            }
+        }
+
+        /**
+         * View Navigation
+         */
+        function navigate(viewName) {
+            currentView = viewName;
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            const activeSection = document.getElementById(`view-${viewName}`);
+            if (activeSection) activeSection.classList.remove('hidden');
+
+            // Update Sidebar Active Styling
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const target = btn.getAttribute('data-nav');
+                if (target === viewName) {
+                    btn.className = 'nav-btn w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors bg-indigo-600 text-white shadow-sm';
+                } else {
+                    btn.className = 'nav-btn w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-300 hover:bg-slate-800 hover:text-white';
+                }
+            });
+
+            // Update Page Header Titles
+            const titles = {
+                dashboard: ['Dashboard Overview', 'Real-time hardware stock, issue approvals, and lab system health.'],
+                inventory: ['Lab Hardware Inventory', 'Browse department kits, check availability, and request hardware.'],
+                requests: ['Issue & Return Logs', 'Track student borrowing history, due dates, and overdue fines.'],
+                maintenance: ['Faulty PC & Maintenance', 'Report and resolve broken workstations, monitors, or network ports.']
+            };
+            document.getElementById('pageTitle').textContent = titles[viewName][0];
+            document.getElementById('pageSubtitle').textContent = titles[viewName][1];
+
+            // Close mobile sidebar after selection
+            if (window.innerWidth < 1024) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.classList.contains('-translate-x-full')) toggleSidebar();
+            }
+            renderAll();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        /**
+         * Overdue Fine Calculator (₹20 per day past dueDate for active Issued items)
+         */
+        function calculateFine(req) {
+            if (req.status !== 'Issued') return { isOverdue: false, days: 0, fine: 0 };
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const due = new Date(req.dueDate);
+            due.setHours(0, 0, 0, 0);
+            const diffDays = Math.floor((today - due) / (1000 * 60 * 60 * 24));
+            if (diffDays > 0) {
+                return { isOverdue: true, days: diffDays, fine: diffDays * 20 };
+            }
+            return { isOverdue: false, days: 0, fine: 0 };
+        }
+
+        /**
+         * Master Render Function
+         */
+        function renderAll() {
+            renderDashboard();
+            renderInventory();
+            renderRequests();
+            renderMaintenance();
+            updateSidebarBadges();
+        }
+
+        function updateSidebarBadges() {
+            const pendingCount = appState.requests.filter(r => r.status === 'Pending').length;
+            const openFaults = appState.faults.filter(f => f.status !== 'Resolved').length;
+
+            const pBadge = document.getElementById('pendingBadge');
+            pBadge.textContent = pendingCount;
+            pBadge.classList.toggle('hidden', pendingCount === 0);
+
+            const fBadge = document.getElementById('faultBadge');
+            fBadge.textContent = openFaults;
+            fBadge.classList.toggle('hidden', openFaults === 0);
+        }
+
+        /**
+         * Render Dashboard KPIs, Recent Table, and Category Utilization Bars
+         */
+        function renderDashboard() {
+            const totalUnits = appState.equipment.reduce((sum, e) => sum + e.total, 0);
+            const availUnits = appState.equipment.reduce((sum, e) => sum + e.available, 0);
+            const activeIssued = appState.requests.filter(r => r.status === 'Issued').reduce((sum, r) => sum + r.qty, 0);
+            const pendingReq = appState.requests.filter(r => r.status === 'Pending').length;
+            const openFaults = appState.faults.filter(f => f.status !== 'Resolved').length;
+
+            document.getElementById('statTotalUnits').textContent = totalUnits;
+            document.getElementById('statAvailableUnits').textContent = `${availUnits} currently available`;
+            document.getElementById('statActiveIssued').textContent = activeIssued;
+            document.getElementById('statPendingReq').textContent = pendingReq;
+            document.getElementById('statOpenFaults').textContent = openFaults;
+
+            // Recent Transactions Table (Top 5)
+            const recentBody = document.getElementById('dashboardRecentBody');
+            recentBody.innerHTML = appState.requests.slice(0, 5).map(req => {
+                const fineInfo = calculateFine(req);
+                return `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3.5 px-5">
+                            <p class="font-semibold text-slate-900">${escapeHtml(req.equipName)}</p>
+                            <p class="text-xs text-slate-400">Qty: ${req.qty} • ${req.id}</p>
+                        </td>
+                        <td class="py-3.5 px-5">
+                            <p class="font-medium text-slate-700">${escapeHtml(req.studentName)}</p>
+                            <p class="text-xs text-slate-400">${req.rollNo}</p>
+                        </td>
+                        <td class="py-3.5 px-5 text-slate-600 font-medium">${req.dueDate}</td>
+                        <td class="py-3.5 px-5">${getStatusBadge(req.status, fineInfo.isOverdue)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Category Utilization Progress Bars
+            const categories = ['IoT & Microcontrollers', 'Networking', 'Computing & VR', 'Sensors & Tools'];
+            const barsContainer = document.getElementById('categoryBars');
+            barsContainer.innerHTML = categories.map(cat => {
+                const items = appState.equipment.filter(e => e.category === cat);
+                const tot = items.reduce((s, i) => s + i.total, 0);
+                const av = items.reduce((s, i) => s + i.available, 0);
+                const pct = tot > 0 ? Math.round((av / tot) * 100) : 0;
+                return `
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-1.5">
+                            <span class="text-slate-700">${cat}</span>
+                            <span class="text-slate-500">${av} / ${tot} free</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full bg-indigo-600 transition-all duration-500" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Render Lab Inventory Cards
+         */
+        function renderInventory() {
+            const query = document.getElementById('inventorySearch').value.toLowerCase().trim();
+            const cat = document.getElementById('categoryFilter').value;
+            const grid = document.getElementById('inventoryGrid');
+
+            const filtered = appState.equipment.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(query) || item.lab.toLowerCase().includes(query) || item.specs.toLowerCase().includes(query);
+                const matchesCat = cat === 'All' || item.category === cat;
+                return matchesSearch && matchesCat;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-500">No lab equipment matches your search filter.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => {
+                const isLow = item.available <= 2 && item.available > 0;
+                const isOut = item.available === 0;
+                const stockPill = isOut
+                    ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">Out of Stock</span>`
+                    : isLow
+                        ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">Low Stock (${item.available})</span>`
+                        : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">${item.available} / ${item.total} Available</span>`;
+
+                const actionBtn = currentRole === 'student'
+                    ? `<button onclick="openRequestModal('${item.id}')" ${isOut ? 'disabled' : ''} class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition-all ${isOut ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm active:scale-95'}">
+                            ${isOut ? 'Currently Unavailable' : 'Request Hardware Issue'}
+                       </button>`
+                    : `<div class="flex gap-2">
+                            <button onclick="adjustStock('${item.id}', 1)" class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">+1 Stock</button>
+                            <button onclick="deleteEquipment('${item.id}')" class="py-2 px-3 rounded-xl text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-600">Remove</button>
+                       </div>`;
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-2 mb-3">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">${item.category}</span>
+                                ${stockPill}
+                            </div>
+                            <h4 class="font-bold text-slate-900 text-base leading-snug">${escapeHtml(item.name)}</h4>
+                            <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${escapeHtml(item.specs)}</p>
+                        </div>
+                        <div class="mt-5 pt-4 border-t border-slate-100 space-y-3">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span class="font-medium">Location: <strong class="text-slate-700">${escapeHtml(item.lab)}</strong></span>
+                                <span class="font-mono text-slate-400">${item.id}</span>
+                            </div>
+                            ${actionBtn}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Render Issue & Return Requests Table
+         */
+        function setRequestFilter(filter) {
+            currentReqFilter = filter;
+            document.querySelectorAll('.req-filter-btn').forEach(btn => {
+                const isMatch = btn.getAttribute('data-req-filter') === filter;
+                btn.className = isMatch
+                    ? 'req-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white'
+                    : 'req-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50';
+            });
+            renderRequests();
+        }
+
+        function renderRequests() {
+            const tbody = document.getElementById('requestsTableBody');
+            const hint = document.getElementById('requestScopeHint');
+            const activeUser = currentUser || appState.users[0];
+
+            // Students see their own requests; Admin sees all department requests
+            let list = currentRole === 'admin'
+                ? appState.requests
+                : appState.requests.filter(r => r.rollNo === activeUser.rollNo);
+
+            hint.textContent = currentRole === 'admin'
+                ? 'Showing all department requests (Admin Access)'
+                : `Showing requests for ${activeUser.name} (${activeUser.rollNo})`;
+
+            if (currentReqFilter !== 'All') {
+                list = list.filter(r => r.status === currentReqFilter);
+            }
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400 text-sm">No issue logs found for this filter.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(req => {
+                const fineInfo = calculateFine(req);
+                let actionHtml = `<span class="text-xs text-slate-400">—</span>`;
+
+                if (currentRole === 'admin') {
+                    if (req.status === 'Pending') {
+                        actionHtml = `
+                            <div class="flex items-center justify-end gap-1.5">
+                                <button onclick="approveRequest('${req.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white">Approve</button>
+                                <button onclick="rejectRequest('${req.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-600">Reject</button>
+                            </div>
+                        `;
+                    } else if (req.status === 'Issued') {
+                        actionHtml = `<button onclick="markReturned('${req.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white">Mark Returned</button>`;
+                    }
+                } else if (req.status === 'Pending') {
+                    actionHtml = `<button onclick="cancelStudentRequest('${req.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600">Cancel</button>`;
+                }
+
+                return `
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="py-4 px-5 font-mono text-xs font-bold text-slate-500">${req.id}</td>
+                        <td class="py-4 px-5">
+                            <p class="font-semibold text-slate-900">${escapeHtml(req.equipName)}</p>
+                            <p class="text-xs text-slate-500">Qty: ${req.qty} • ${escapeHtml(req.purpose)}</p>
+                        </td>
+                        <td class="py-4 px-5">
+                            <p class="font-medium text-slate-800">${escapeHtml(req.studentName)}</p>
+                            <p class="text-xs text-slate-400">${req.rollNo}</p>
+                        </td>
+                        <td class="py-4 px-5 text-xs">
+                            <p class="text-slate-500">Issued: <span class="text-slate-700 font-medium">${req.issueDate}</span></p>
+                            <p class="text-slate-500 mt-0.5">Due: <span class="font-semibold ${fineInfo.isOverdue ? 'text-rose-600' : 'text-slate-800'}">${req.dueDate}</span></p>
+                        </td>
+                        <td class="py-4 px-5">
+                            ${getStatusBadge(req.status, fineInfo.isOverdue)}
+                            ${fineInfo.isOverdue ? `<p class="text-[11px] font-bold text-rose-600 mt-1">Fine: ₹${fineInfo.fine} (${fineInfo.days}d late)</p>` : ''}
+                        </td>
+                        <td class="py-4 px-5 text-right">${actionHtml}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Render Faulty PC / Maintenance Tickets
+         */
+        function renderMaintenance() {
+            const container = document.getElementById('faultTicketsList');
+            if (appState.faults.length === 0) {
+                container.innerHTML = `<div class="col-span-full bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-500">All lab systems are healthy. No fault tickets open.</div>`;
+                return;
+            }
+
+            container.innerHTML = appState.faults.map(ticket => {
+                const prioColors = {
+                    High: 'bg-rose-50 text-rose-700 border-rose-200',
+                    Medium: 'bg-amber-50 text-amber-700 border-amber-200',
+                    Low: 'bg-sky-50 text-sky-700 border-sky-200'
+                };
+                const statusColors = {
+                    Open: 'bg-rose-600 text-white',
+                    'In Progress': 'bg-amber-500 text-slate-900',
+                    Resolved: 'bg-emerald-600 text-white'
+                };
+
+                const adminControls = currentRole === 'admin' && ticket.status !== 'Resolved'
+                    ? `<div class="flex gap-2 mt-4 pt-3 border-t border-slate-100">
+                            ${ticket.status === 'Open' ? `<button onclick="updateFaultStatus('${ticket.id}', 'In Progress')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 hover:bg-amber-200 text-amber-900">Mark In Progress</button>` : ''}
+                            <button onclick="updateFaultStatus('${ticket.id}', 'Resolved')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white">Mark Resolved</button>
+                       </div>`
+                    : '';
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono text-xs font-bold text-slate-400">${ticket.id}</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${prioColors[ticket.priority]}">${ticket.priority} Priority</span>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${statusColors[ticket.status]}">${ticket.status}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-900">${escapeHtml(ticket.lab)} — <span class="text-indigo-600">${escapeHtml(ticket.systemId)}</span></h4>
+                            <p class="text-sm text-slate-600 mt-1.5">${escapeHtml(ticket.description)}</p>
+                            <p class="text-xs text-slate-400 mt-3">Reported by ${escapeHtml(ticket.reportedBy)} on ${ticket.date}</p>
+                        </div>
+                        ${adminControls}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* ================= CRUD & WORKFLOW ACTIONS ================= */
+
+        function openRequestModal(equipId) {
+            const item = appState.equipment.find(e => e.id === equipId);
+            if (!item || item.available < 1) return;
+
+            document.getElementById('reqEquipId').value = item.id;
+            document.getElementById('reqEquipTitle').textContent = item.name;
+            document.getElementById('reqEquipAvail').textContent = `${item.available} units available in ${item.lab}`;
+            const qtyInput = document.getElementById('reqQty');
+            qtyInput.max = item.available;
+            qtyInput.value = 1;
+
+            // Default due date = 7 days from today
+            const due = new Date();
+            due.setDate(due.getDate() + 7);
+            document.getElementById('reqDueDate').value = due.toISOString().split('T')[0];
+            document.getElementById('reqPurpose').value = '';
+
+            openModal('requestModal');
+        }
+
+        function submitIssueRequest(e) {
+            e.preventDefault();
+            const equipId = document.getElementById('reqEquipId').value;
+            const qty = parseInt(document.getElementById('reqQty').value, 10);
+            const dueDate = document.getElementById('reqDueDate').value;
+            const purpose = document.getElementById('reqPurpose').value.trim();
+
+            const item = appState.equipment.find(eq => eq.id === equipId);
+            if (!item || qty > item.available) {
+                showToast('Requested quantity exceeds available stock.', 'error');
+                return;
+            }
+            const activeUser = currentUser || appState.users[0];
+            const newReq = {
+                id: 'REQ-' + (500 + appState.requests.length + 1),
+                equipId: item.id,
+                equipName: item.name,
+                studentName: activeUser.name,
+                rollNo: activeUser.rollNo,
+                qty: qty,
+                purpose: purpose,
+                issueDate: new Date().toISOString().split('T')[0],
+                dueDate: dueDate,
+                status: 'Pending'
+            };
+
+            appState.requests.unshift(newReq);
+            saveData();
+            closeModal('requestModal');
+            renderAll();
+            showToast(`Request ${newReq.id} submitted! Switch to Lab Admin to approve it.`, 'success');
+        }
+
+        function approveRequest(reqId) {
+            const req = appState.requests.find(r => r.id === reqId);
+            if (!req) return;
+            const equip = appState.equipment.find(e => e.id === req.equipId);
+            if (!equip || equip.available < req.qty) {
+                showToast('Insufficient stock available to approve this request.', 'error');
+                return;
+            }
+            equip.available -= req.qty;
+            req.status = 'Issued';
+            saveData();
+            renderAll();
+            showToast(`Approved ${req.id}. Stock updated automatically.`, 'success');
+        }
+
+        function rejectRequest(reqId) {
+            const req = appState.requests.find(r => r.id === reqId);
+            if (!req) return;
+            req.status = 'Rejected';
+            saveData();
+            renderAll();
+            showToast(`Request ${req.id} marked as Rejected.`, 'info');
+        }
+
+        function markReturned(reqId) {
+            const req = appState.requests.find(r => r.id === reqId);
+            if (!req) return;
+            const equip = appState.equipment.find(e => e.id === req.equipId);
+            if (equip) {
+                equip.available = Math.min(equip.total, equip.available + req.qty);
+            }
+            req.status = 'Returned';
+            saveData();
+            renderAll();
+            showToast(`Equipment returned for ${req.id}. Inventory restocked.`, 'success');
+        }
+
+        function cancelStudentRequest(reqId) {
+            appState.requests = appState.requests.filter(r => r.id !== reqId);
+            saveData();
+            renderAll();
+            showToast(`Request ${reqId} cancelled.`, 'info');
+        }
+
+        function openAddEquipmentModal() {
+            document.getElementById('addEquipForm').reset();
+            openModal('addEquipModal');
+        }
+
+        function submitNewEquipment(e) {
+            e.preventDefault();
+            const qty = parseInt(document.getElementById('newEquipQty').value, 10);
+            const newItem = {
+                id: 'EQ-' + (101 + appState.equipment.length),
+                name: document.getElementById('newEquipName').value.trim(),
+                category: document.getElementById('newEquipCat').value,
+                lab: document.getElementById('newEquipLab').value.trim(),
+                total: qty,
+                available: qty,
+                specs: 'Department Verified Hardware Kit'
+            };
+            appState.equipment.unshift(newItem);
+            saveData();
+            closeModal('addEquipModal');
+            renderAll();
+            showToast(`Added "${newItem.name}" to inventory.`, 'success');
+        }
+
+        function adjustStock(equipId, delta) {
+            const item = appState.equipment.find(e => e.id === equipId);
+            if (!item) return;
+            item.total += delta;
+            item.available += delta;
+            saveData();
+            renderAll();
+            showToast(`Updated stock for ${item.name}.`, 'success');
+        }
+
+        function deleteEquipment(equipId) {
+            appState.equipment = appState.equipment.filter(e => e.id !== equipId);
+            saveData();
+            renderAll();
+            showToast('Equipment removed from inventory.', 'info');
+        }
+
+        function openFaultModal() {
+            document.getElementById('faultForm').reset();
+            openModal('faultModal');
+        }
+
+        function submitFaultReport(e) {
+            e.preventDefault();
+            const activeUser = currentUser || appState.users[0];
+            const reporter = currentRole === 'admin' ? `${activeUser.name} (Admin)` : `${activeUser.name} (${activeUser.rollNo})`;
+            const ticket = {
+                id: 'FLT-' + (201 + appState.faults.length),
+                lab: document.getElementById('faultLab').value,
+                systemId: document.getElementById('faultSysId').value.trim().toUpperCase(),
+                priority: document.getElementById('faultPriority').value,
+                description: document.getElementById('faultDesc').value.trim(),
+                reportedBy: reporter,
+                date: new Date().toISOString().split('T')[0],
+                status: 'Open'
+            };
+            appState.faults.unshift(ticket);
+            saveData();
+            closeModal('faultModal');
+            navigate('maintenance');
+            showToast(`Fault ticket ${ticket.id} logged successfully.`, 'success');
+        }
+
+        function updateFaultStatus(ticketId, newStatus) {
+            const ticket = appState.faults.find(t => t.id === ticketId);
+            if (!ticket) return;
+            ticket.status = newStatus;
+            saveData();
+            renderAll();
+            showToast(`Ticket ${ticketId} marked as ${newStatus}.`, 'success');
+        }
+
+        /* ================= UTILITIES (MODALS, TOASTS, CLIPBOARD) ================= */
+
+        function openModal(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+        }
+
+        function getStatusBadge(status, isOverdue) {
+            if (status === 'Issued' && isOverdue) {
+                return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700">Overdue</span>`;
+            }
+            const styles = {
+                Pending: 'bg-amber-100 text-amber-800',
+                Issued: 'bg-indigo-100 text-indigo-700',
+                Returned: 'bg-emerald-100 text-emerald-700',
+                Rejected: 'bg-slate-200 text-slate-600'
+            };
+            return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${styles[status] || 'bg-slate-100 text-slate-700'}">${status}</span>`;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const colors = {
+                success: 'bg-slate-900 text-white border-emerald-500',
+                error: 'bg-rose-600 text-white border-rose-800',
+                info: 'bg-indigo-600 text-white border-indigo-800'
+            };
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border-l-4 text-xs sm:text-sm font-medium fade-in ${colors[type]}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // Initialize application on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (currentUser) {
+                document.getElementById('authOverlay').classList.add('hidden');
+                applyUserToUI(currentUser);
+            } else {
+                document.getElementById('authOverlay').classList.remove('hidden');
+            }
+            renderAll();
+        });
+    </script>
+</body>
+</html>
